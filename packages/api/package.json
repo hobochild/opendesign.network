@@ -15,6 +15,7 @@
     "dependencies": {
         "@dollarshaveclub/cloudworker": "^0.1.2",
         "cheerio": "^1.0.0-rc.3",
-        "serverless-cloudflare-workers": "^1.2.0"
+        "serverless-cloudflare-workers": "^1.2.0",
+        "tiny-request-router": "^1.1.2"
     }
 }

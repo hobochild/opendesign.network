@@ -1,0 +1,8 @@
+name = "ui"
+type = "webpack"
+account_id = "2d4b7fc9b0689bb7acda6a64b2147129"
+workers_dev = true
+
+[site]
+bucket = './build'
+entry-point = "workers-site"
