@@ -1,0 +1,13 @@
+{
+  "name": "project-network",
+  "version": "1.0.0",
+  "description": "open design network",
+  "author": "hobochild",
+  "license": "MIT",
+  "devDependencies": {
+    "lerna": "^3.18.3"
+  },
+  "scripts": {
+    "serve": "lerna run serve --stream"
+  }
+}

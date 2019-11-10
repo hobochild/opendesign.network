@@ -1,0 +1,12 @@
+name = "api"
+type = "webpack"
+account_id = "2d4b7fc9b0689bb7acda6a64b2147129"
+workers_dev = true
+route = ""
+zone_id = ""
+email = "hobochildster@gmail.com"
+
+kv-namespaces = [
+{ binding = "NODES", id = "b933f2b4ad874a2b9671ddb44abfcad6" },
+{ binding = "EDGES", id = "0870930ba79d4184aee7dcb9c3bd3ddd" }
+]
