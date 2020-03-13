@@ -19,6 +19,32 @@ function svg(id, verified) {
 </svg>`
 }
 
+class MockDB {
+    constructor() {
+       this.data = {} 
+    }
+
+  get(key) {
+    return Promise.resolve(this.data[key])
+  }
+
+  put(key, value) {
+    this.data[key] = value
+    return Promise.resolve(value)
+  }
+
+  list() {
+    return Promise.resolve({ keys: [] })
+  }
+}
+
+if (process.env.NODE_ENV == "production") {
+  NODES = new MockDB()
+  EDGES = new MockDB()
+}
+
+console.log(NODES)
+
 async function verify(url, triggerUrl) {
     const request = new Request(url)
     const res = await fetch(request)
@@ -40,6 +66,11 @@ async function verify(url, triggerUrl) {
 
 const genNodeId = url => {
     return btoa(url.hostname + url.pathname)
+}
+
+const prettyURL = input => {
+    const url = new URL(input)
+    return url.hostname + url.pathname
 }
 
 async function getNode(nodeId) {
@@ -76,7 +107,8 @@ async function nodeHandle(request) {
 
 async function nodeAdd(request) {
     const body = await request.json()
-    const nodeId = genNodeId(new URL(body.url))
+    const url = prettyURL(body.url)
+    const nodeId = btoa(url)
 
     const oldNode = await NODES.get(nodeId)
 
@@ -90,7 +122,7 @@ async function nodeAdd(request) {
     }
 
     const payload = JSON.stringify({
-        ...body,
+        url,
         id: nodeId,
     })
 
@@ -100,7 +132,7 @@ async function nodeAdd(request) {
 
     return new Response(payload, {
         status: 201,
-        statusText: `Created - expiration: ${tsTomorrow}`,
+        statusText: `Created - Expiration: ${tsTomorrow}`,
         headers: {
             ...corsHeaders,
             'content-type': 'application/json',
