@@ -7,12 +7,13 @@ const createNode = (url, prev) => {
     method: 'POST',
     body: JSON.stringify({ url, prev }),
     headers: {
-      'Content-Type': 'application/json',
-    },
+      'Content-Type': 'application/json'
+    }
   })
 }
 
 export default ({ nodeId }) => {
+  // eslint-disable-next-line
   const [location, setLocation] = useLocation()
   const inputRef = useRef()
 
@@ -20,8 +21,9 @@ export default ({ nodeId }) => {
     <div
       style={{
         display: 'flex',
-        justifyContent: 'center',
-      }}>
+        justifyContent: 'center'
+      }}
+    >
       <div>
         {nodeId && <div>forking {atob(nodeId)}</div>}
         <p> Add your url here: </p>
@@ -30,8 +32,9 @@ export default ({ nodeId }) => {
             event.preventDefault()
             const newNode = await createNode(inputRef.current.value, nodeId)
             setLocation(`/node/${newNode.id}/snippet`)
-          }}>
-          <input ref={inputRef} type="url" name="name" value="http://" />
+          }}
+        >
+          <input ref={inputRef} type="url" name="name" placeholder="http://" />
           <input type="submit" value={nodeId ? 'fork' : 'create'} />
         </form>
       </div>

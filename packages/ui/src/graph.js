@@ -4,12 +4,12 @@ import _ from 'lodash'
 import { fetcher } from './utils'
 import { useLocation, Link } from 'wouter'
 
-export default ({ nodeIds, width = 400, height = 800 }) => {
+export default ({ nodeIds = [], width = 400, height = 800 }) => {
   const [graph, setGraph] = useState({
     nodes: nodeIds.map(id => ({
-      id,
+      id
     })),
-    links: [],
+    links: []
   })
 
   const config = {
@@ -30,23 +30,24 @@ export default ({ nodeIds, width = 400, height = 800 }) => {
                 fill:
                   nodeIds.length === 1 && nodeIds.includes(node.id)
                     ? 'yellow'
-                    : 'gray',
+                    : 'gray'
               }}
             />
           </svg>
         )
-      },
+      }
     },
     width,
     height,
     directed: true,
     d3: {
       gravity: -(graph.nodes.length * 50),
-      alphaTarget: 0.5,
-    },
+      alphaTarget: 0.5
+    }
   }
 
-  const [_location, setLocation] = useLocation([])
+  // eslint-disable-next-line
+  const [location, setLocation] = useLocation([])
 
   const traverse = async function(nodeId, cb) {
     const edges = await fetcher(`/node/${nodeId}/edge`)
@@ -55,7 +56,7 @@ export default ({ nodeIds, width = 400, height = 800 }) => {
       const [source, target] = name.split(':')
       return {
         source,
-        target,
+        target
       }
     })
 
@@ -64,13 +65,13 @@ export default ({ nodeIds, width = 400, height = 800 }) => {
         const [source, target] = name.split(':')
         return [
           {
-            id: target,
+            id: target
           },
           {
-            id: source,
-          },
+            id: source
+          }
         ]
-      }),
+      })
     )
 
     setGraph(graph => {
@@ -95,7 +96,7 @@ export default ({ nodeIds, width = 400, height = 800 }) => {
           graph.nodes.concat({ id: node.prev }),
           function(n) {
             return n.id
-          },
+          }
         )
 
         return { ...graph, nodes: uniqNodes }
@@ -115,25 +116,22 @@ export default ({ nodeIds, width = 400, height = 800 }) => {
       fetchNode(nodeId)
       return nodeId
     })
-  }, [])
+  }, [nodeIds])
 
-  useEffect(
-    () => {
-      setGraph(graph => {
-        return {
-          ...graph,
-          nodes: graph.nodes.map(n => ({
-            ...n,
-            x: Math.floor(Math.random() * width - width / 10),
-            y: Math.floor(Math.random() * height - height / 10),
-            className: String(Math.floor(Math.random() * width)),
-            fontSize: 20,
-          })),
-        }
-      })
-    },
-    [width, height],
-  )
+  useEffect(() => {
+    setGraph(graph => {
+      return {
+        ...graph,
+        nodes: graph.nodes.map(n => ({
+          ...n,
+          x: Math.floor(Math.random() * width - width / 10),
+          y: Math.floor(Math.random() * height - height / 10),
+          className: String(Math.floor(Math.random() * width)),
+          fontSize: 20
+        }))
+      }
+    })
+  }, [width, height])
 
   // This is a hack to only load the orphan nodes once we know the
   // container size.
