@@ -1,5 +1,6 @@
 import cheerio from 'cheerio'
 import { Router } from 'tiny-request-router'
+import MockDB from './mock.db'
 
 const UI_URL = 'https://opendesign.network'
 const API_URL = 'https://api.opendesign.network'
@@ -19,40 +20,18 @@ function svg(id, verified) {
 </svg>`
 }
 
-class MockDB {
-    constructor() {
-       this.data = {} 
-    }
-
-  get(key) {
-    return Promise.resolve(this.data[key])
-  }
-
-  put(key, value) {
-    this.data[key] = value
-    return Promise.resolve(value)
-  }
-
-  list() {
-    return Promise.resolve({ keys: [] })
-  }
+if (process.env.NODE_ENV == 'production') {
+    NODES = new MockDB()
+    EDGES = new MockDB()
 }
 
-if (process.env.NODE_ENV == "production") {
-  NODES = new MockDB()
-  EDGES = new MockDB()
-}
-
-console.log(NODES)
-
-async function verify(url, triggerUrl) {
-    const request = new Request(url)
-    const res = await fetch(request)
+async function verify(url, resourceURL) {
+    const res = await fetch(url)
     const txt = await res.text()
     const $ = cheerio.load(txt)
 
     // checks if the url comes from the site in question
-    const isVerified = $(`img[src="${triggerUrl.href}"]`).length > 0
+    const isVerified = $(`img[src="${resourceURL.href}"]`).length > 0
 
     return {
         url: url,
@@ -60,17 +39,17 @@ async function verify(url, triggerUrl) {
         description: $('meta[name=description]').attr('content'),
         lastVerified: new Date().getTime(),
         isVerified,
-        prev: triggerUrl.searchParams.get('prev'),
+        prev: resourceURL.searchParams.get('prev'),
     }
 }
 
 const genNodeId = url => {
-    return btoa(url.hostname + url.pathname)
+    return btoa(url.host + url.pathname)
 }
 
 const prettyURL = input => {
     const url = new URL(input)
-    return url.hostname + url.pathname
+    return url.protocol + '//' + url.host + url.pathname
 }
 
 async function getNode(nodeId) {
@@ -216,20 +195,20 @@ async function pixelHandle(request) {
         })
     }
 
+    await verify(node.url, url)
+
     if (
         !node.lastVerified ||
         node.lastVerified - new Date().getTime() > 5 * 60 * 1000
     ) {
         const verification = await verify(node.url, url)
 
-        if (verification.isVerified) {
-            await NODES.put(nodeId, JSON.stringify(verification))
-            if (verification.prev) {
-                await EDGES.put(
-                    `${verification.prev}:${nodeId}`,
-                    JSON.stringify(verification)
-                )
-            }
+        await NODES.put(nodeId, JSON.stringify(verification))
+        if (verification.prev) {
+            await EDGES.put(
+                `${verification.prev}:${nodeId}`,
+                JSON.stringify(verification)
+            )
         }
     }
 
@@ -269,7 +248,7 @@ const r = new Router()
     .get('/node/:nodeId/edge', NodeEdgeList)
     .get('/node/:nodeId', nodeHandle)
     .get('/node', nodeList)
-    .all('/', () => new Response('This is the idea network!'), {
+    .all('/', () => new Response('This is the open design network!'), {
         headers: corsHeaders,
     }) // return a default message for the root route
 

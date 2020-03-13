@@ -7,15 +7,16 @@
         "test": "yarn dev & jest && sleep 1 && pkill wrangler",
         "format": "prettier --write '**/*.{js,css,json,md}'",
         "dev": "wrangler dev",
-        "test-watch": "yarn dev & jest --watch" 
+        "test-watch": "yarn dev & jest --watch"
     },
     "author": "Craig Mulligan <hobochildster@gmail.com>",
     "license": "ISC",
     "devDependencies": {
         "@cloudflare/wrangler": "^1.8.1",
+        "express": "^4.17.1",
+        "got": "^10.6.0",
         "jest": "^25.1.0",
-        "prettier": "^1.17.0",
-        "got": "^10.6.0"
+        "prettier": "^1.17.0"
     },
     "dependencies": {
         "cheerio": "^1.0.0-rc.3",
