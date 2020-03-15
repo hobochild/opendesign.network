@@ -1,19 +1,16 @@
-user creates a button with svg link (this button represents an edge in the graph)
+User creates a node (URL) on the network and gets given a snippet - this node is then visible on the network for x timeperiod or until verified.
 
-<img src="/pixel?forked=prevId"/>
+User adds snippet to their website - when the website is loaded it pulls the pixel.
 
-This requests the pixel from referrer x.
+<img src="/node/<nodeId>/pixel?forked=prevId"/>
 
-```
-NODE.get(referrerURL)
-```
+This requests the pixel from node x.
 
-if not verified in the last x hours then we call verify() which scrapes website
-and may also save edges.
+If not verified in the last x hours then we call verify() which scrapes website, on verification is saves the node itself and its edges.
 
 ```
 {
-  id: base64<referrerURL>
+  id: base64<prettyURL>
   lastVerified: now(),
   isVerified: timestamp,
   title: x,
@@ -23,13 +20,24 @@ and may also save edges.
 ```
 
 ```
+// this is so we can quickly traverse
 EDGE.get('<prevId>:<nodeId>')
+```
+
+# For dev flow run
+
+```
+yarn dev
+```
+
+# Tests
+
+cloudflare workers dev workflow is still in beta so tests are a little strange. (see integration.test.js for details)
+
+```
+yarn test
 ```
 
 Questions:
 
-Do we need edges up the graph?
 Do we need different edge types?
-Do we need a way to set the referrerURL from the image snippet?
-On page request we assume the button was clicked from the referrerURL.
-Is using referrerURLs going to be very unreliable?
