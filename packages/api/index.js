@@ -31,7 +31,10 @@ async function verify(url, resourceURL) {
     const $ = cheerio.load(txt)
 
     // checks if the url comes from the site in question
-    const isVerified = $(`img[src="${resourceURL.href}"]`).length > 0
+    // clean the URL
+    const cleanURL =
+        resourceURL.protocol + '//' + resourceURL.host + resourceURL.pathname
+    const isVerified = $(`img[src="${cleanURL}"]`).length > 0
 
     return {
         url: url,
@@ -167,14 +170,14 @@ async function pixelSnippetHandle(request) {
 
     const snippet = `<a href="${encodeURI(nodeUrl)}" /><img src="${encodeURI(
         pixelUrl
-    )}"><a>`
+    )}" /></a>`
 
     return new Response(snippet, {
         status: 200,
         statusText: 'ok',
         headers: {
             ...corsHeaders,
-            'content-type': 'text/plain',
+            'content-type': 'text/html',
         },
     })
 }
@@ -195,10 +198,9 @@ async function pixelHandle(request) {
         })
     }
 
-    await verify(node.url, url)
-
     if (
         !node.lastVerified ||
+        url.searchParams.get('verify') ||
         node.lastVerified - new Date().getTime() > 5 * 60 * 1000
     ) {
         const verification = await verify(node.url, url)

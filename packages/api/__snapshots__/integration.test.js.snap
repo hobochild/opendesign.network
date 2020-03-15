@@ -3,6 +3,8 @@
 exports[`Node verify - Happy 1`] = `
 "<svg height=\\"50\\" width=\\"200\\" xmlns=\\"http://www.w3.org/2000/svg\\">
   <rect fill=\\"green\\" x=\\"0\\" y=\\"0\\" width=\\"200\\" height=\\"50\\"></rect>
-  <text x=\\"100\\" y=\\"25\\" fill=\\"pink\\" text-anchor=\\"middle\\" alignment-baseline=\\"central\\">  project: aHR0cDovL2xvY2FsaG9zdDo5OTk5Lw==</text>
+  <text x=\\"100\\" y=\\"25\\" fill=\\"pink\\" text-anchor=\\"middle\\" alignment-baseline=\\"central\\">  project: aHR0cDovL29wZW5kZXNpZ24uc2VydmVybGVzcy5zb2NpYWwv</text>
 </svg>"
 `;
+
+exports[`Node verify - Happy 2`] = `"<a href=\\"https://opendesign.network/node/aHR0cDovL29wZW5kZXNpZ24uc2VydmVybGVzcy5zb2NpYWwv\\" /><img src=\\"https://api.opendesign.network/node/aHR0cDovL29wZW5kZXNpZ24uc2VydmVybGVzcy5zb2NpYWwv/pixel\\" /></a>"`;

@@ -1,21 +1,54 @@
 const got = require('got')
 const express = require('express')
+const localtunnel = require('localtunnel')
 
-const serve = (content = 'hi', port = 3000) => {
-    const app = express()
-    return new Promise((resolve, reject) => {
-        app.get('/', (req, res) => {
-            res.set('Content-Type', 'text/html')
-            res.send(content)
-        })
-        const listener = app.listen(port, err => {
-            resolve(listener)
+class Server {
+    // This allows us to serve random html to
+    // publically accessible endpoint
+    // it's used to act as another website that is interacting with
+    // with the system eg. hosting the opendesign snippet
+    constructor(content = '<p>hi</p>') {
+        this.content = content
+    }
 
-            if (err) {
-                reject(err)
-            }
+    serve(port) {
+        const app = express()
+        return new Promise((resolve, reject) => {
+            app.get('/', (req, res) => {
+                res.set('Content-Type', 'text/html')
+                res.send(this.content)
+            })
+
+            this.listener = app.listen(port, err => {
+                if (err) {
+                    reject(err)
+                }
+
+                console.log('listening')
+
+                localtunnel(
+                    port,
+                    {
+                        subdomain: 'opendesign',
+                        host: 'http://serverless.social',
+                    },
+                    (err, tunnel) => {
+                        console.log('tunnel up')
+                        if (err) {
+                            reject(err)
+                        }
+                        this.tunnel = tunnel
+                        resolve()
+                    }
+                )
+            })
         })
-    })
+    }
+
+    close() {
+        this.tunnel.close()
+        this.listener.close()
+    }
 }
 
 const API = 'http://localhost:8787'
@@ -60,33 +93,46 @@ test('Node Add - happy', async () => {
 })
 
 test('Node verify - Happy', async () => {
-    const siteURL = 'http://localhost:9999/'
-    const res = await got.post(`${API}/node`, {
-        json: { url: siteURL },
-    })
-
-    expect(res.statusCode).toBe(201)
-    const newNode = JSON.parse(res.body)
-    const snippet = await got(`${API}/node/${newNode.id}/snippet`).text()
-
-    // serve the snippet locally so we can verify.
-    const server = await serve(snippet, 9999)
-    const x = await got(siteURL)
-    console.log(x.body)
+    const server = new Server()
+    await server.serve(9999)
 
     try {
+        const siteURL = server.tunnel.url
+        const res = await got.post(`${API}/node`, {
+            json: { url: siteURL },
+        })
+
+        expect(res.statusCode).toBe(201)
+        const newNode = JSON.parse(res.body)
+
         const node = await got(`${API}/node/${newNode.id}/pixel`).text()
         expect(node).toMatchSnapshot()
-    } catch (err) {
-        console.log(err)
+
+        const unverifiedNode = await got(`${API}/node/${newNode.id}`).json()
+
+        expect(unverifiedNode).toHaveProperty('lastVerified')
+        expect(unverifiedNode).toHaveProperty('isVerified')
+
+        // serve the snippet locally so we can verify.
+        const snippet = await got(`${API}/node/${newNode.id}/snippet`).text()
+        expect(snippet).toMatchSnapshot()
+
+        server.content = snippet
+
+        // force a verify
+        await got(`${API}/node/${newNode.id}/pixel?verify=1`).text()
+
+        const verifiedNode = await got(`${API}/node/${newNode.id}`).json()
+        expect(verifiedNode).toHaveProperty('isVerified', true)
     } finally {
         server.close()
     }
+}, 20000)
 
-    const verifiedNode = await got(`${API}/node/${newNode.id}`).json()
+test('Node fork', () => {
+    console.log('TODO')
+})
 
-    expect(verifiedNode).toHaveProperty('lastVerified')
-    // not verified because localhost is not here?
-    // I think the network is tunnelled through cloudflare so localhost doesn't work
-    expect(verifiedNode).toHaveProperty('isVerified')
+test('Node fork', () => {
+    console.log('TODO')
 })

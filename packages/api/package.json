@@ -4,10 +4,10 @@
     "description": "package for creating workers templates",
     "main": "index.js",
     "scripts": {
-        "test": "yarn dev & jest && sleep 1 && pkill wrangler",
+        "test": "yarn dev & jest --runInBand --detectOpenHandles && sleep 1 && pkill wrangler",
         "format": "prettier --write '**/*.{js,css,json,md}'",
-        "dev": "wrangler dev",
-        "test-watch": "yarn dev & jest --watch"
+        "dev": "wrangler dev -h api.opendesign.network",
+        "test-watch": "jest --watch"
     },
     "author": "Craig Mulligan <hobochildster@gmail.com>",
     "license": "ISC",
@@ -20,6 +20,7 @@
     },
     "dependencies": {
         "cheerio": "^1.0.0-rc.3",
+        "localtunnel": "^2.0.0",
         "tiny-request-router": "^1.1.2"
     }
 }
