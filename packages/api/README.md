@@ -10,12 +10,12 @@ If not verified in the last x hours then we call verify() which scrapes website,
 
 ```
 {
-  id: base64<prettyURL>
-  lastVerified: now(),
-  isVerified: timestamp,
-  title: x,
-  description: y
-  prevId: prevId
+  id: <base64(PrettyURL)>
+  lastVerified: <Datetime>,
+  isVerified: <Bool>,
+  title: <String>,
+  description: <String>
+  prevId: <Node.id>
 }
 ```
 
