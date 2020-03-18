@@ -7,7 +7,7 @@
         "test": "yarn dev & jest --runInBand --detectOpenHandles && sleep 1 && pkill wrangler",
         "format": "prettier --write '**/*.{js,css,json,md}'",
         "dev": "wrangler dev -h api.opendesign.network",
-        "test-watch": "jest --watch"
+        "jest": "jest"
     },
     "author": "Craig Mulligan <hobochildster@gmail.com>",
     "license": "ISC",

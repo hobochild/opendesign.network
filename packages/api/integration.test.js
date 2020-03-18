@@ -11,7 +11,7 @@ class Server {
         this.content = content
     }
 
-    serve(port) {
+    serve(port = 3000, subdomain = 'opendesign') {
         const app = express()
         return new Promise((resolve, reject) => {
             app.get('/', (req, res) => {
@@ -29,8 +29,8 @@ class Server {
                 localtunnel(
                     port,
                     {
-                        subdomain: 'opendesign',
                         host: 'http://serverless.social',
+                        subdomain,
                     },
                     (err, tunnel) => {
                         console.log('tunnel up')
@@ -94,7 +94,7 @@ test('Node Add - happy', async () => {
 
 test('Node verify - Happy', async () => {
     const server = new Server()
-    await server.serve(9999)
+    await server.serve(9999, 'nodeverifyhappy')
 
     try {
         const siteURL = server.tunnel.url
@@ -129,10 +129,39 @@ test('Node verify - Happy', async () => {
     }
 }, 20000)
 
-test('Node fork', () => {
-    console.log('TODO')
-})
+test('Node fork - happy', async () => {
+    const server = new Server()
+    await server.serve(9998, 'nodeforkhappy')
 
-test('Node fork', () => {
-    console.log('TODO')
-})
+    try {
+        const siteURL = server.tunnel.url
+        const res = await got.post(`${API}/node`, {
+            json: { url: siteURL, prev: '123' },
+        })
+
+        expect(res.statusCode).toBe(201)
+        const newNode = JSON.parse(res.body)
+
+        const node = await got(`${API}/node/${newNode.id}/pixel`).text()
+        expect(node).toMatchSnapshot()
+
+        const unverifiedNode = await got(`${API}/node/${newNode.id}`).json()
+        expect(unverifiedNode).toHaveProperty('lastVerified')
+        expect(unverifiedNode).toHaveProperty('isVerified')
+        expect(unverifiedNode).toHaveProperty('prev', '123')
+
+        // serve the snippet locally so we can verify.
+        const snippet = await got(`${API}/node/${newNode.id}/snippet`).text()
+        expect(snippet).toMatchSnapshot()
+        server.content = snippet
+
+        // force a verify
+        await got(`${API}/node/${newNode.id}/pixel?verify=1&prev=123`).text()
+
+        const verifiedNode = await got(`${API}/node/${newNode.id}`).json()
+        expect(verifiedNode).toHaveProperty('isVerified', true)
+        expect(verifiedNode).toHaveProperty('prev', '123')
+    } finally {
+        server.close()
+    }
+}, 20000)

@@ -32,17 +32,22 @@ async function verify(url, resourceURL) {
 
     // checks if the url comes from the site in question
     // clean the URL
+    const prev = resourceURL.searchParams.get('prev')
+    const search = prev ? '?prev=' + prev : ''
     const cleanURL =
-        resourceURL.protocol + '//' + resourceURL.host + resourceURL.pathname
+        resourceURL.protocol +
+        '//' +
+        resourceURL.host +
+        resourceURL.pathname +
+        search
+
     const isVerified = $(`img[src="${cleanURL}"]`).length > 0
 
     return {
-        url: url,
         title: $('title').text(),
         description: $('meta[name=description]').attr('content'),
         lastVerified: new Date().getTime(),
         isVerified,
-        prev: resourceURL.searchParams.get('prev'),
     }
 }
 
@@ -104,6 +109,7 @@ async function nodeAdd(request) {
     }
 
     const payload = JSON.stringify({
+        ...body,
         url,
         id: nodeId,
     })
@@ -185,7 +191,7 @@ async function pixelSnippetHandle(request) {
 async function pixelHandle(request) {
     const url = new URL(request.url)
     const nodeId = request.params.nodeId
-    const node = await NODES.get(nodeId).then(JSON.parse)
+    let node = await NODES.get(nodeId).then(JSON.parse)
 
     if (!node) {
         return new Response('resource not found', {
@@ -204,12 +210,20 @@ async function pixelHandle(request) {
         node.lastVerified - new Date().getTime() > 5 * 60 * 1000
     ) {
         const verification = await verify(node.url, url)
+        node = {
+            ...node,
+            ...verification,
+        }
 
-        await NODES.put(nodeId, JSON.stringify(verification))
-        if (verification.prev) {
+        await NODES.put(
+            nodeId,
+            JSON.stringify(node)
+        )
+
+        if (node.isVerified && node.prev) {
             await EDGES.put(
-                `${verification.prev}:${nodeId}`,
-                JSON.stringify(verification)
+                `${node.prev}:${nodeId}`,
+              JSON.stringify(node)
             )
         }
     }
